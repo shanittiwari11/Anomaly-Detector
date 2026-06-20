@@ -232,5 +232,4 @@ with right:
     except Exception as e:
         st.warning(f"Error loading alerts: {str(e)}")
 
-time.sleep(2)
-st.rerun()
+# Remove auto-rerun - only refresh on button click
