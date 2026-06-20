@@ -4,31 +4,43 @@ import random
 import psycopg2
 from datetime import datetime
 
-# Use explicit Postgres variables that Railway provides
-# When you add a Postgres service, Railway auto-creates these
-DB_HOST = os.getenv("PGHOST", "postgres")  # Internal service name
+# Railway provides these when a Postgres service is linked
+# PGHOST, PGPORT, PGUSER, PGPASSWORD, PGDATABASE
+DB_HOST = os.getenv("PGHOST", "postgres")
 DB_PORT = int(os.getenv("PGPORT", "5432"))
 DB_USER = os.getenv("PGUSER", "postgres")
-DB_PASSWORD = os.getenv("PGPASSWORD", "")
+DB_PASSWORD = os.getenv("PGPASSWORD")  # Don't provide default, must come from Railway
 DB_NAME = os.getenv("PGDATABASE", "railway")
 
-print(f"[Producer] Configuration:")
-print(f"  Host: {DB_HOST}")
-print(f"  Port: {DB_PORT}")
-print(f"  Database: {DB_NAME}")
-print(f"  User: {DB_USER}")
+print(f"[Producer] Configuration:", flush=True)
+print(f"  Host: {DB_HOST}", flush=True)
+print(f"  Port: {DB_PORT}", flush=True)
+print(f"  Database: {DB_NAME}", flush=True)
+print(f"  User: {DB_USER}", flush=True)
+print(f"  Password: {'***' if DB_PASSWORD else 'NOT SET'}", flush=True)
 print(f"[Producer] Attempting connection...", flush=True)
 
 def get_db():
     try:
-        conn = psycopg2.connect(
-            host=DB_HOST,
-            port=DB_PORT,
-            user=DB_USER,
-            password=DB_PASSWORD,
-            database=DB_NAME,
-            connect_timeout=10
-        )
+        # Build connection string
+        if DB_PASSWORD:
+            conn = psycopg2.connect(
+                host=DB_HOST,
+                port=DB_PORT,
+                user=DB_USER,
+                password=DB_PASSWORD,
+                database=DB_NAME,
+                connect_timeout=10
+            )
+        else:
+            # Try without password (for some Railway setups)
+            conn = psycopg2.connect(
+                host=DB_HOST,
+                port=DB_PORT,
+                user=DB_USER,
+                database=DB_NAME,
+                connect_timeout=10
+            )
         print("[Producer] ✓ Database connected", flush=True)
         return conn
     except Exception as e:
