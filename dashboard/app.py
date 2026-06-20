@@ -262,3 +262,7 @@ with right:
                     st.markdown(f'<div class="alert-row"><b>{ts_short}</b> | {a[1]} | <b>{a[2]:.2f}{a[3]}</b></div>', unsafe_allow_html=True)
     except Exception as e:
         st.warning(f"Error loading alerts: {str(e)}")
+
+# Auto-refresh every 2 seconds
+time.sleep(2)
+st.rerun()
