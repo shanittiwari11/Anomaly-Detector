@@ -1,18 +1,64 @@
 import os
-import sys
 import time
 import psycopg2
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-# Initialize database on startup
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-try:
-    from init_database import init_db
-    init_db()
-except Exception as e:
-    print(f"Warning: Could not initialize database: {e}")
+# Initialize database tables on first load
+@st.cache_resource
+def init_db():
+    """Create database tables if they don't exist."""
+    try:
+        conn = psycopg2.connect(
+            host=os.getenv("PGHOST", "postgres"),
+            port=int(os.getenv("PGPORT", "5432")),
+            user=os.getenv("PGUSER", "postgres"),
+            password=os.getenv("PGPASSWORD", ""),
+            database=os.getenv("PGDATABASE", "railway")
+        )
+        
+        cur = conn.cursor()
+        
+        # Create sensor_readings table
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS sensor_readings (
+                id SERIAL PRIMARY KEY,
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                channel VARCHAR(50) NOT NULL,
+                value FLOAT NOT NULL,
+                is_anomaly BOOLEAN DEFAULT FALSE
+            )
+        """)
+        
+        # Create anomaly_alerts table
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS anomaly_alerts (
+                id SERIAL PRIMARY KEY,
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                channel VARCHAR(50) NOT NULL,
+                value FLOAT NOT NULL,
+                unit VARCHAR(20) NOT NULL,
+                is_anomaly BOOLEAN DEFAULT TRUE
+            )
+        """)
+        
+        # Create indexes
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_sensor_readings_channel ON sensor_readings(channel)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_sensor_readings_timestamp ON sensor_readings(timestamp)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_anomaly_alerts_timestamp ON anomaly_alerts(timestamp)")
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return True
+    except Exception as e:
+        print(f"Database init error: {e}")
+        return False
+
+# Initialize on startup
+init_db()
 
 st.set_page_config(page_title="Anomaly Detection Monitor", page_icon="🔍", layout="wide", initial_sidebar_state="collapsed")
 
