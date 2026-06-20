@@ -8,7 +8,6 @@ import streamlit as st
 st.set_page_config(page_title="Anomaly Detection Monitor", page_icon="🔍", layout="wide", initial_sidebar_state="collapsed")
 
 # Initialize database tables on first load
-@st.cache_resource
 def init_db():
     """Create database tables if they don't exist."""
     try:
