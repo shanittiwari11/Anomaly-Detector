@@ -1,9 +1,18 @@
 import os
+import sys
 import time
 import psycopg2
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
+
+# Initialize database on startup
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+try:
+    from init_database import init_db
+    init_db()
+except Exception as e:
+    print(f"Warning: Could not initialize database: {e}")
 
 st.set_page_config(page_title="Anomaly Detection Monitor", page_icon="🔍", layout="wide", initial_sidebar_state="collapsed")
 
