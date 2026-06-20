@@ -1,15 +1,15 @@
-# Anomaly Detection System
+# Anomaly Detection System : https://anomaly-detector-production.up.railway.app/
 
-A real-time anomaly detection system using Apache Kafka, machine learning models, and a Streamlit dashboard to monitor sensor readings and identify anomalies.
+I made a real time anomaly detection system using Apache Kafka, machine learning models, and a Streamlit dashboard to monitor sensor readings and identify anomalies.
 
 ## Features
 
-- **Real-time Data Processing**: Kafka-based streaming pipeline for sensor data
-- **Multiple Detection Models**: Isolation Forest and LSTM Autoencoder detectors
-- **Live Dashboard**: Streamlit web interface with interactive visualizations
-- **PostgreSQL Storage**: Persistent storage for sensor readings and alerts
-- **Multi-channel Monitoring**: Temperature, vibration, and pressure sensors
-- **Docker Compose**: Easy deployment with containerized services
+- Real time Data Processing: Kafka based streaming pipeline for sensor data
+- Multiple Detection Models: Isolation Forest and LSTM Autoencoder detectors
+- Live Dashboard: Streamlit web interface with interactive visualizations
+- PostgreSQL Storage: Persistent storage for sensor readings and alerts
+- Mult channel Monitoring: Temperature, vibration, and pressure sensors
+- Docker Compose: Easy deployment with containerized services
 
 ## Architecture
 
@@ -118,8 +118,8 @@ streamlit run dashboard/app.py
 
 ## Model Performance
 
-- **Isolation Forest**: Fast, lightweight, handles multivariate data
-- **LSTM Autoencoder**: Deep learning approach, detects temporal anomalies
+- Isolation Forest: Fast, lightweight, handles multivariate data
+- LSTM Autoencoder: Deep learning approach, detects temporal anomalies
 
 ## Database Schema
 
@@ -187,5 +187,4 @@ docker compose up -d
 MIT License
 
 ## Author
-
 Shanit Tiwari
