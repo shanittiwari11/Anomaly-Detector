@@ -5,15 +5,28 @@ import psycopg2
 from datetime import datetime
 import sys
 
-# Database connection using Railway env vars
-DB_HOST = os.getenv("PGHOST", "localhost")
-DB_PORT = int(os.getenv("PGPORT", "5432"))
-DB_USER = os.getenv("PGUSER", "postgres")
-DB_PASSWORD = os.getenv("PGPASSWORD", "")
-DB_NAME = os.getenv("PGDATABASE", "railway")
+# Try to parse DATABASE_URL first (Railway auto-provides this)
+database_url = os.getenv("DATABASE_URL")
 
-print(f"[Producer] Connecting to {DB_HOST}:{DB_PORT}/{DB_NAME}", file=sys.stderr)
-print(f"[Producer] User: {DB_USER}", file=sys.stderr)
+if database_url:
+    # Parse DATABASE_URL format: postgresql://user:password@host:port/database
+    import urllib.parse
+    parsed = urllib.parse.urlparse(database_url)
+    DB_HOST = parsed.hostname
+    DB_PORT = parsed.port or 5432
+    DB_USER = parsed.username
+    DB_PASSWORD = parsed.password
+    DB_NAME = parsed.path.lstrip('/')
+else:
+    # Fallback to individual env vars
+    DB_HOST = os.getenv("PGHOST", "localhost")
+    DB_PORT = int(os.getenv("PGPORT", "5432"))
+    DB_USER = os.getenv("PGUSER", "postgres")
+    DB_PASSWORD = os.getenv("PGPASSWORD", "")
+    DB_NAME = os.getenv("PGDATABASE", "railway")
+
+print(f"[Producer] Connecting to {DB_HOST}:{DB_PORT}/{DB_NAME}", flush=True)
+print(f"[Producer] User: {DB_USER}", flush=True)
 
 def get_db():
     try:
@@ -25,10 +38,10 @@ def get_db():
             database=DB_NAME,
             connect_timeout=10
         )
-        print("[Producer] ✓ Database connected", file=sys.stderr)
+        print("[Producer] ✓ Database connected", flush=True)
         return conn
     except Exception as e:
-        print(f"[Producer] ✗ Connection error: {e}", file=sys.stderr)
+        print(f"[Producer] ✗ Connection error: {e}", flush=True)
         raise
 
 def init_tables():
@@ -69,10 +82,9 @@ def init_tables():
         conn.commit()
         cur.close()
         conn.close()
-        print("[Producer] ✓ Tables initialized", file=sys.stderr)
+        print("[Producer] ✓ Tables initialized", flush=True)
     except Exception as e:
-        print(f"[Producer] Error initializing tables: {e}", file=sys.stderr)
-        raise
+        print(f"[Producer] Error initializing tables: {e}", flush=True)
 
 def generate_sensor_data():
     """Generate and insert sensor data."""
@@ -104,23 +116,29 @@ def generate_sensor_data():
             
             conn.commit()
             insert_count += 3
-            print(f"[{datetime.now().strftime('%H:%M:%S')}] Inserted 3 readings (total: {insert_count})", file=sys.stderr)
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] ✓ Inserted 3 readings (total: {insert_count})", flush=True)
             cur.close()
             conn.close()
             
             time.sleep(1)
         
         except Exception as e:
-            print(f"[Producer] Error: {e}", file=sys.stderr)
+            print(f"[Producer] Insert error: {e}", flush=True)
+            try:
+                cur.close()
+                conn.close()
+            except:
+                pass
             time.sleep(5)
 
 if __name__ == "__main__":
-    print("[Producer] Starting sensor data producer...", file=sys.stderr)
+    print("[Producer] Starting sensor data producer...", flush=True)
     
     try:
         init_tables()
+        print("[Producer] Beginning data generation...", flush=True)
         generate_sensor_data()
     except KeyboardInterrupt:
-        print("[Producer] Stopped", file=sys.stderr)
+        print("[Producer] Stopped by user", flush=True)
     except Exception as e:
-        print(f"[Producer] Fatal error: {e}", file=sys.stderr)
+        print(f"[Producer] Fatal error: {e}", flush=True)
