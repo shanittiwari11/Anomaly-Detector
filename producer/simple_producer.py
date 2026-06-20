@@ -5,11 +5,10 @@ import psycopg2
 from datetime import datetime
 
 # Railway provides these when a Postgres service is linked
-# PGHOST, PGPORT, PGUSER, PGPASSWORD, PGDATABASE
 DB_HOST = os.getenv("PGHOST", "postgres")
 DB_PORT = int(os.getenv("PGPORT", "5432"))
 DB_USER = os.getenv("PGUSER", "postgres")
-DB_PASSWORD = os.getenv("PGPASSWORD")  # Don't provide default, must come from Railway
+DB_PASSWORD = os.getenv("PGPASSWORD")
 DB_NAME = os.getenv("PGDATABASE", "railway")
 
 print(f"[Producer] Configuration:", flush=True)
@@ -17,12 +16,10 @@ print(f"  Host: {DB_HOST}", flush=True)
 print(f"  Port: {DB_PORT}", flush=True)
 print(f"  Database: {DB_NAME}", flush=True)
 print(f"  User: {DB_USER}", flush=True)
-print(f"  Password: {'***' if DB_PASSWORD else 'NOT SET'}", flush=True)
 print(f"[Producer] Attempting connection...", flush=True)
 
 def get_db():
     try:
-        # Build connection string
         if DB_PASSWORD:
             conn = psycopg2.connect(
                 host=DB_HOST,
@@ -33,7 +30,6 @@ def get_db():
                 connect_timeout=10
             )
         else:
-            # Try without password (for some Railway setups)
             conn = psycopg2.connect(
                 host=DB_HOST,
                 port=DB_PORT,
@@ -90,10 +86,11 @@ def init_tables():
         print(f"[Producer] Table creation error: {e}", flush=True)
 
 def generate_sensor_data():
-    """Generate and insert sensor data."""
+    """Generate and insert sensor data with random anomalies."""
     sensor_id = "sensor-001"
     channels = ["temperature", "vibration", "pressure"]
     insert_count = 0
+    anomaly_count = 0
     
     while True:
         conn = None
@@ -102,25 +99,40 @@ def generate_sensor_data():
             cur = conn.cursor()
             
             for channel in channels:
-                # Generate realistic data
-                if channel == "temperature":
-                    value = 20 + random.gauss(0, 5)  # Around 20°C
-                elif channel == "vibration":
-                    value = 2 + random.gauss(0, 0.5)  # Around 2 mm/s
-                else:  # pressure
-                    value = 100 + random.gauss(0, 10)  # Around 100 kPa
+                # 10% chance of anomaly
+                is_anomaly = random.random() < 0.10
+                
+                if is_anomaly:
+                    # Generate anomalous data (extreme values)
+                    if channel == "temperature":
+                        value = random.uniform(80, 150)  # Abnormal temps
+                    elif channel == "vibration":
+                        value = random.uniform(20, 100)  # High vibration
+                    else:  # pressure
+                        value = random.uniform(300, 700)  # Extreme pressure
+                    anomaly_count += 1
+                else:
+                    # Generate normal data
+                    if channel == "temperature":
+                        value = 20 + random.gauss(0, 5)  # Around 20°C
+                    elif channel == "vibration":
+                        value = 2 + random.gauss(0, 0.5)  # Around 2 mm/s
+                    else:  # pressure
+                        value = 100 + random.gauss(0, 10)  # Around 100 kPa
                 
                 # Insert into database
                 cur.execute(
                     """INSERT INTO sensor_readings 
                     (sensor_id, channel, value, is_anomaly) 
                     VALUES (%s, %s, %s, %s)""",
-                    (sensor_id, channel, value, False)
+                    (sensor_id, channel, value, is_anomaly)
                 )
             
             conn.commit()
             insert_count += 3
-            print(f"[{datetime.now().strftime('%H:%M:%S')}] ✓ Inserted 3 readings (total: {insert_count})", flush=True)
+            
+            status = "ANOMALY!" if any([random.random() < 0.10 for _ in range(3)]) else "normal"
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] ✓ Inserted 3 readings ({status}) | Total: {insert_count} | Anomalies: {anomaly_count}", flush=True)
             cur.close()
             conn.close()
             
@@ -137,7 +149,7 @@ def generate_sensor_data():
             time.sleep(5)
 
 if __name__ == "__main__":
-    print("[Producer] Starting sensor data producer...", flush=True)
+    print("[Producer] Starting sensor data producer with random anomalies...", flush=True)
     
     try:
         init_tables()
