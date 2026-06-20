@@ -5,8 +5,9 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
+st.set_page_config(page_title="Anomaly Detection Monitor", page_icon="🔍", layout="wide", initial_sidebar_state="collapsed")
+
 # Initialize database tables on first load
-@st.cache_resource
 def init_db():
     """Create database tables if they don't exist."""
     try:
@@ -59,8 +60,6 @@ def init_db():
 
 # Initialize on startup
 init_db()
-
-st.set_page_config(page_title="Anomaly Detection Monitor", page_icon="🔍", layout="wide", initial_sidebar_state="collapsed")
 
 DB_HOST = os.getenv("PGHOST", "postgres")
 DB_PORT = int(os.getenv("PGPORT", "5432"))
