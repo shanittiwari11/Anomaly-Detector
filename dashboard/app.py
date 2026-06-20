@@ -25,6 +25,7 @@ def init_db():
         cur.execute("""
             CREATE TABLE IF NOT EXISTS sensor_readings (
                 id SERIAL PRIMARY KEY,
+                sensor_id VARCHAR(50),
                 timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 channel VARCHAR(50) NOT NULL,
                 value FLOAT NOT NULL,
@@ -36,6 +37,7 @@ def init_db():
         cur.execute("""
             CREATE TABLE IF NOT EXISTS anomaly_alerts (
                 id SERIAL PRIMARY KEY,
+                sensor_id VARCHAR(50),
                 timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 channel VARCHAR(50) NOT NULL,
                 value FLOAT NOT NULL,
@@ -99,7 +101,7 @@ st.markdown("""<style>
     h1, h2, h3 { color: #fff !important; }
 </style>""", unsafe_allow_html=True)
 
-col_title, col_status = st.columns([4, 1])
+col_title, col_status, col_refresh = st.columns([3, 1, 1])
 with col_title:
     st.markdown("# Real Time Anomaly Detection Monitor")
     st.caption(f"Database: `{DB_HOST}:{DB_PORT}/{DB_NAME}`")
@@ -109,6 +111,10 @@ with col_status:
     h, rem = divmod(uptime, 3600)
     m, s = divmod(rem, 60)
     st.metric("Uptime", f"{h:02d}:{m:02d}:{s:02d}")
+with col_refresh:
+    st.markdown("")
+    if st.button("🔄 Refresh", key="refresh_btn", help="Refresh all data now"):
+        st.rerun()
 
 # Query stats
 total = 0
@@ -228,4 +234,3 @@ with right:
 
 time.sleep(2)
 st.rerun()
-
