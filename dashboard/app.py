@@ -7,11 +7,11 @@ import streamlit as st
 
 st.set_page_config(page_title="Anomaly Detection Monitor", page_icon="🔍", layout="wide", initial_sidebar_state="collapsed")
 
-DB_HOST = os.getenv("DB_HOST", "postgres")
-DB_PORT = int(os.getenv("DB_PORT", "5432"))
-DB_USER = os.getenv("DB_USER", "anomaly_user")
-DB_PASSWORD = os.getenv("DB_PASSWORD", "anomaly_pass")
-DB_NAME = os.getenv("DB_NAME", "anomaly_db")
+DB_HOST = os.getenv("PGHOST", "postgres")
+DB_PORT = int(os.getenv("PGPORT", "5432"))
+DB_USER = os.getenv("PGUSER", "anomaly_user")
+DB_PASSWORD = os.getenv("PGPASSWORD", "anomaly_pass")
+DB_NAME = os.getenv("PGDATABASE", "anomaly_db")
 
 BUFFER_SIZE = 300
 CHANNELS = ["temperature", "vibration", "pressure"]
@@ -174,3 +174,4 @@ with right:
 
 time.sleep(2)
 st.rerun()
+
