@@ -60,6 +60,27 @@ def init_db():
         print(f"Database init error: {e}")
         return False
 
+def clear_all_data():
+    """Clear all sensor data and alerts."""
+    try:
+        conn = psycopg2.connect(
+            host=os.getenv("PGHOST", "postgres"),
+            port=int(os.getenv("PGPORT", "5432")),
+            user=os.getenv("PGUSER", "postgres"),
+            password=os.getenv("PGPASSWORD", ""),
+            database=os.getenv("PGDATABASE", "railway")
+        )
+        cur = conn.cursor()
+        cur.execute("DELETE FROM sensor_readings")
+        cur.execute("DELETE FROM anomaly_alerts")
+        conn.commit()
+        cur.close()
+        conn.close()
+        return True
+    except Exception as e:
+        print(f"Error clearing data: {e}")
+        return False
+
 DB_HOST = os.getenv("PGHOST", "postgres")
 DB_PORT = int(os.getenv("PGPORT", "5432"))
 DB_USER = os.getenv("PGUSER", "anomaly_user")
@@ -101,7 +122,7 @@ st.markdown("""<style>
     h1, h2, h3 { color: #fff !important; }
 </style>""", unsafe_allow_html=True)
 
-col_title, col_status, col_refresh = st.columns([3, 1, 1])
+col_title, col_status, col_refresh, col_clear = st.columns([2.5, 1, 0.75, 0.75])
 with col_title:
     st.markdown("# Real Time Anomaly Detection Monitor")
     st.caption(f"Database: `{DB_HOST}:{DB_PORT}/{DB_NAME}`")
@@ -115,6 +136,16 @@ with col_refresh:
     st.markdown("")
     if st.button("🔄 Refresh", key="refresh_btn", help="Refresh all data now"):
         st.rerun()
+with col_clear:
+    st.markdown("")
+    if st.button("🗑️ Clear", key="clear_btn", help="Clear all data and restart"):
+        if clear_all_data():
+            st.session_state.uptime_start = time.time()
+            st.success("✓ All data cleared!")
+            time.sleep(1)
+            st.rerun()
+        else:
+            st.error("Failed to clear data")
 
 # Query stats
 total = 0
@@ -231,5 +262,3 @@ with right:
                     st.markdown(f'<div class="alert-row"><b>{ts_short}</b> | {a[1]} | <b>{a[2]:.2f}{a[3]}</b></div>', unsafe_allow_html=True)
     except Exception as e:
         st.warning(f"Error loading alerts: {str(e)}")
-
-# Remove auto-rerun - only refresh on button click
