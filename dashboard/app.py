@@ -58,9 +58,6 @@ def init_db():
         print(f"Database init error: {e}")
         return False
 
-# Initialize on startup
-init_db()
-
 DB_HOST = os.getenv("PGHOST", "postgres")
 DB_PORT = int(os.getenv("PGPORT", "5432"))
 DB_USER = os.getenv("PGUSER", "anomaly_user")
@@ -71,6 +68,9 @@ BUFFER_SIZE = 300
 CHANNELS = ["temperature", "vibration", "pressure"]
 CHANNEL_COLORS = {"temperature": "#ff6b6b", "vibration": "#4ecdc4", "pressure": "#45aaf2"}
 UNITS = {"temperature": "°C", "vibration": "mm/s", "pressure": "kPa"}
+
+# Initialize database
+init_db()
 
 if "uptime_start" not in st.session_state:
     st.session_state.uptime_start = time.time()
