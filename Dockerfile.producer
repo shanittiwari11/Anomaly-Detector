@@ -1,0 +1,13 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install only producer dependencies (no TF/sklearn needed)
+COPY requirements.txt .
+RUN pip install --no-cache-dir kafka-python==2.0.2 python-dotenv==1.0.1 psycopg2-binary==2.9.9
+
+COPY producer/ ./producer/
+
+ENV PYTHONUNBUFFERED=1
+
+CMD ["python", "producer/sensor_simulator.py"]
