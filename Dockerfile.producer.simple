@@ -4,8 +4,8 @@ WORKDIR /app
 
 RUN pip install --no-cache-dir psycopg2-binary==2.9.9
 
-COPY producer/simple_producer.py .
+COPY producer/simple_producer.py ./simple_producer.py
 
 ENV PYTHONUNBUFFERED=1
 
-CMD ["python", "simple_producer.py"]
+CMD ["python3", "simple_producer.py"]
