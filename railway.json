@@ -1,0 +1,10 @@
+{
+  "services": {
+    "dashboard": {
+      "dockerfile": "Dockerfile"
+    },
+    "sensor-producer": {
+      "dockerfile": "Dockerfile.producer.simple"
+    }
+  }
+}
